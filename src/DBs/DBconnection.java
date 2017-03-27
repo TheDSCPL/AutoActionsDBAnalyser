@@ -1,4 +1,5 @@
 package DBs;
+import Structs.Interval;
 import Structs.TableResult;
 import org.sqlite.*;
 
@@ -87,6 +88,8 @@ public class DBconnection {
                 System.exit(13);
             }
         }
+
+        //public Map<Integer, Interval<Integer>> get
     }
 
     public Session getSession() {
