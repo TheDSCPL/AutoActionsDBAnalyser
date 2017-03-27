@@ -81,10 +81,21 @@ public class TableResult {
         }
 
         public void print(java.io.PrintStream stream) {
-            for(int i = 0; i<numColumns() ; i++) {
+            /*for(int i = 0; i<numColumns() ; i++) {
                 stream.print(columnNames.get(i) + "= " + values.get(i) + " ");
             }
-            stream.println();
+            stream.println();*/
+            stream.print(this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            for(int i = 0; i<numColumns() ; i++) {
+                sb.append(columnNames.get(i) + "= " + values.get(i) + " ");
+            }
+            sb.append(System.lineSeparator());
+            return sb.toString();
         }
     }
 
@@ -124,8 +135,18 @@ public class TableResult {
     }
 
     public void print(java.io.PrintStream stream) {
-        stream.println("Table \"" + tableName + "\"'s contents (#tuples: " + numTuples() +"):");
-        tuples.stream().forEachOrdered(o -> o.print(stream));
+        /*stream.println("Table \"" + tableName + "\"'s contents (#tuples: " + numTuples() +"):");
+        tuples.forEach(o -> o.print(stream));*/
+        stream.print(toString());
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Table \"" + tableName + "\"'s contents (#tuples: " + numTuples() +"):")
+          .append(System.lineSeparator());
+        tuples.forEach(o -> sb.append(o));
+        return sb.toString();
     }
 
     public void importResultSet(ResultSet rs) {

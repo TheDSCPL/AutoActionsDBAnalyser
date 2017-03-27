@@ -89,7 +89,14 @@ public class DBconnection {
             }
         }
 
-        //public Map<Integer, Interval<Integer>> get
+        public Map<Integer, Interval<Integer>> getSessionIntervals() {
+            return tableResult.tuples.stream().collect(Collectors.toMap(
+                    o->(Integer)o.values.get(0),
+                    o->new Interval(
+                            (Integer)o.values.get(1) * 1000 + (Integer)o.values.get(2),
+                            (Integer)o.values.get(5) * 1000 + (Integer)o.values.get(6))
+            ));
+        };
     }
 
     public Session getSession() {

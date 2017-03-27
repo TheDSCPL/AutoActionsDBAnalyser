@@ -15,4 +15,8 @@ public final class Interval<T extends Comparable<? super T>> {
         return !((from.compareTo(b.from) < 0 && to.compareTo(b.from) < 0 ) ||
                  (b.from.compareTo(from) < 0 && b.to.compareTo(from) < 0 ));
     }
+    @Override
+    public final String toString() {
+        return "[ " + from + " ; " + to + " ]";
+    }
 }
