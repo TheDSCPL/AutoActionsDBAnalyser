@@ -1,10 +1,11 @@
-package DBs;
+package com.luis.p.durao.AutoActionsDBAnalyser.DBs;
 
-import Structs.Interval;
+import com.luis.p.durao.AutoActionsDBAnalyser.Structs.Interval;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -12,7 +13,17 @@ public class Session extends Table {
 
     Session(DBconnection db) {
         super(db,
-                "session",
+                Arrays.asList(new Class<?>[] {
+                        Integer.class,
+                        Integer.class,
+                        Integer.class,
+                        Integer.class,
+                        Integer.class,
+                        Integer.class,
+                        Integer.class,
+                        Integer.class,
+                        Integer.class
+                }),
                 "session_id",
                 "start_time",
                 "start_millis",
@@ -22,31 +33,6 @@ public class Session extends Table {
                 "end_millis",
                 "end_elapsed_seconds",
                 "end_elapsed_millis");
-        ResultSet res = null;
-        try {
-            if(!db.c.isValid(2)) {
-                System.err.println("DB \"" + db.fileName + "\" is not valid!");
-                System.exit(2);
-            }
-
-            Statement statement = db.c.createStatement();
-            final String concatColumns = tableResult.columnNames.stream().reduce("",(a,b) -> a+(a.equals("")?"":", ")+b);
-            final String query = "SELECT " + concatColumns + " FROM " + tableResult.tableName + ";";
-            //System.out.println(query);
-            res = statement.executeQuery(query);
-            //res.close();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.exit(3);
-        }
-        tableResult.importResultSet(res);
-        try {
-            res.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.exit(13);
-        }
     }
 
     @SuppressWarnings("unchecked")

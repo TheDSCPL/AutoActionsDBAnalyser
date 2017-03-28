@@ -1,4 +1,4 @@
-package Structs;
+package com.luis.p.durao.AutoActionsDBAnalyser.Structs;
 
 import com.sun.istack.internal.NotNull;
 

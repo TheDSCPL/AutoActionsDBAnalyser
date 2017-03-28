@@ -1,11 +1,6 @@
-package DBs;
-import Structs.Interval;
-import Structs.TableResult;
-import org.sqlite.*;
+package com.luis.p.durao.AutoActionsDBAnalyser.DBs;
 
 import java.sql.*;
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class DBconnection {
     public static DBconnection manual=null, automatic=null;

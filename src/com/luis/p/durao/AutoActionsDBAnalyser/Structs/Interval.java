@@ -1,6 +1,4 @@
-package Structs;
-
-import java.util.Comparator;
+package com.luis.p.durao.AutoActionsDBAnalyser.Structs;
 
 public final class Interval<T extends Comparable<? super T>> {
     public final T from, to;
