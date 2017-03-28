@@ -81,10 +81,6 @@ public class TableResult {
         }
 
         public void print(java.io.PrintStream stream) {
-            /*for(int i = 0; i<numColumns() ; i++) {
-                stream.print(columnNames.get(i) + "= " + values.get(i) + " ");
-            }
-            stream.println();*/
             stream.print(this);
         }
 

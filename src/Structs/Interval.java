@@ -19,4 +19,9 @@ public final class Interval<T extends Comparable<? super T>> {
     public final String toString() {
         return "[ " + from + " ; " + to + " ]";
     }
+
+    @Override
+    public Interval<T> clone() {
+        return new Interval<T>(from,to);
+    }
 }
