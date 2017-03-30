@@ -35,33 +35,96 @@ public class Process {
         return getAutoSessionsInEachManualSession().entrySet().stream().collect(Collectors.toMap( o->o.getKey() , o->(o.getValue().size()-1) ));
     }
 
-    //http://stackoverflow.com/a/16794680
-    /**
-     * Calculate distance between two points in latitude and longitude taking
-     * into account height difference. If you are not interested in height
-     * difference pass 0.0. Uses Haversine method as its base.
-     *
-     * lat1, lon1 Start point lat2, lon2 End point el1 Start altitude in meters
-     * el2 End altitude in meters
-     * @returns Distance in Meters
-     */
-    private static double distance(double lat1, double lat2, double lon1,
-                                  double lon2, double el1, double el2) {
+    //Map<manualSession, autoSession>
+    private static Map<Integer, Integer> firstAutoSessionInEachManualSession = null;
 
-        final int R = 6371; // Radius of the earth
+    //Map<manualSession, firstTime>
+    private static Map<Integer, Double> firstLocationTimeOfEachManualSession = null;
 
-        Double latDistance = Math.toRadians(lat2 - lat1);
-        Double lonDistance = Math.toRadians(lon2 - lon1);
-        Double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = R * c * 1000; // convert to meters
+    //Map<autoSession, firstTime>
+    private static Map<Integer, Double> firstLocationTimeOfEachAutomaticSession = null;
 
-        double height = el1 - el2;
+    //Map<manualSession, firstTime>
+    private static Map<Integer, Double> lastLocationTimeOfEachManualSession = null;
 
-        distance = Math.pow(distance, 2) + Math.pow(height, 2);
+    //Map<autoSession, firstTime>
+    private static Map<Integer, Double> lastLocationTimeOfEachAutomaticSession = null;
 
-        return Math.sqrt(distance);
+    //Map<manualSession, firstAutoSessionStartTime>
+    private static Map<Integer, Double> firstLocationTimeOfTheFirstAutoSessionInEachManualSession = null;
+
+    private static void init() {
+        getAutoSessionsInEachManualSession();
+
+        if(firstAutoSessionInEachManualSession == null)
+            firstAutoSessionInEachManualSession = autoSessionsInEachManualSession.entrySet().stream()
+                    .filter(o->o.getValue().stream().min(Integer::compareTo).isPresent())
+                    .collect(Collectors.toMap(
+                            o->o.getKey(),
+                            o->o.getValue().stream().min(Integer::compareTo).get())
+                    );
+
+        if(firstLocationTimeOfEachManualSession == null)
+            firstLocationTimeOfEachManualSession = DBconnection.manual.getGslocation().getFirstLocationTimeOfEachSession();
+
+        if(firstLocationTimeOfEachAutomaticSession == null)
+            firstLocationTimeOfEachAutomaticSession =  DBconnection.automatic.getGslocation().getFirstLocationTimeOfEachSession();
+
+        if(lastLocationTimeOfEachManualSession == null)
+            lastLocationTimeOfEachManualSession = DBconnection.manual.getGslocation().getLastLocationTimeOfEachSession();
+
+        if(lastLocationTimeOfEachAutomaticSession == null)
+            lastLocationTimeOfEachAutomaticSession = DBconnection.automatic.getGslocation().getLastLocationTimeOfEachSession();
+
+        if(firstLocationTimeOfTheFirstAutoSessionInEachManualSession == null)
+            firstLocationTimeOfTheFirstAutoSessionInEachManualSession =
+                    firstAutoSessionInEachManualSession.entrySet().stream()
+                            .filter(o -> firstLocationTimeOfEachAutomaticSession.containsKey(o.getValue()))
+                            .collect(Collectors.toMap(
+                            o -> o.getKey(),
+                            o -> firstLocationTimeOfEachAutomaticSession.get(o.getValue())
+                    ));
+    }
+
+    public static Map<Integer, Double> getTotalLostDistancePerManualSession() {
+        //-pegar nas intersações e descobrir a primeira sessão automática de cada.
+        //-ir à primeira sessão automática de cada manual e descobrir o tempo de início dessa sessão
+        //-ir à sessão manual e somar todas as distâncias
+
+        init();
+
+        return firstLocationTimeOfTheFirstAutoSessionInEachManualSession.entrySet().stream().collect(Collectors.toMap(
+                o -> o.getKey(),
+                o -> DBconnection.manual.getGslocation().getTotalDistanceFromTo(o.getKey(),-1,o.getValue())
+        ));
+    }
+
+    public static Map<Integer, Double> getTotalDiameterDistancePerManualSession() {
+        init();
+        return firstLocationTimeOfTheFirstAutoSessionInEachManualSession.entrySet().stream().collect(Collectors.toMap(
+                o -> o.getKey(),
+                o -> DBconnection.manual.getGslocation().getDiameterDistanceFromTo(o.getKey(),-1,o.getValue())
+        ));
+    }
+
+    public static Map<Integer, Double> getLostTimePerManualSession() {
+        return firstLocationTimeOfTheFirstAutoSessionInEachManualSession.entrySet().stream().collect(Collectors.toMap(
+                o -> o.getKey(),
+                o -> o.getValue() - firstLocationTimeOfEachManualSession.getOrDefault(o.getKey(),Double.NaN)
+        ));
+    }
+
+    public static Map<Integer, Double> getDurationOfTestPerManualSession() {
+        return lastLocationTimeOfEachAutomaticSession.entrySet().stream().collect(Collectors.toMap(
+                o -> o.getKey(),
+                o -> o.getValue() - firstLocationTimeOfEachManualSession.getOrDefault(o.getKey(), Double.NaN)
+        ));
+    }
+
+    public static Map<Integer, Double> getStopTimePerManualSession() {
+        return lastLocationTimeOfEachAutomaticSession.entrySet().stream().collect(Collectors.toMap(
+                o -> o.getKey(),
+                o -> o.getValue() - lastLocationTimeOfEachManualSession.getOrDefault(o.getKey(), Double.NaN)
+        ));
     }
 }

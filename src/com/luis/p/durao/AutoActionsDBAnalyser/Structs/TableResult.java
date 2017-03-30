@@ -36,8 +36,9 @@ public class TableResult {
         this.tableName = tableName;
     }
 
-    public final String STRING = "java.lang.String";
-    public final String INTEGER = "java.lang.Integer";
+    public static final Class<?> STRING  = java.lang.String.class;
+    public static final Class<?> INTEGER = java.lang.Integer.class;
+    public static final Class<?> DOUBLE  = java.lang.Double.class;
 
     public final String tableName;
 
@@ -149,7 +150,7 @@ public class TableResult {
         try {
             while ( rs.next() ) {
                 List<Object> temp = new ArrayList<>(numColumns());
-                columnNames.stream().forEachOrdered(o -> {
+                columnNames.forEach(o -> {
                     try {
                         temp.add(rs.getObject(o));
                     } catch (SQLException e) {

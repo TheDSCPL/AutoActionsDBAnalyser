@@ -30,8 +30,12 @@ public class DBconnection {
     }
 
     private Session session = null;
-
     public Session getSession() {
         return (session==null ? (session=new Session(this)) : session);
+    }
+
+    private Gslocation gslocation = null;
+    public Gslocation getGslocation() {
+        return (gslocation==null ? (gslocation=new Gslocation(this)) : gslocation);
     }
 }
