@@ -1,6 +1,6 @@
 package com.luis.p.durao.AutoActionsDBAnalyser;
 
-import com.luis.p.durao.AutoActionsDBAnalyser.DBs.DBconnection;
+import com.luis.p.durao.AutoActionsDBAnalyser.DBs.DBConnection;
 import com.luis.p.durao.AutoActionsDBAnalyser.Structs.Interval;
 
 import java.util.ArrayList;
@@ -11,29 +11,8 @@ import java.util.stream.Collectors;
 
 public class Process {
 
+    //Map<manualSession, listOfAutoSessions>
     private static Map<Integer, List<Integer>> autoSessionsInEachManualSession = null;
-    public static Map<Integer, List<Integer>> getAutoSessionsInEachManualSession() {
-        if(autoSessionsInEachManualSession != null)
-            return autoSessionsInEachManualSession;
-        //NullPointerException is intentional because if it happens it means that the main didn't initialize the com.luis.p.durao.AutoActionsDBAnalyser.DBs yet and this shouldn't be yet running.
-        Map<Integer, Interval<Integer>> autoIntervals = DBconnection.automatic.getSession().getSessionIntervals();
-        Map<Integer, Interval<Integer>> manualIntervals = DBconnection.manual.getSession().getSessionIntervals();
-
-        Map<Integer, List<Integer>> ret = new HashMap<>();
-        for(Map.Entry<Integer, Interval<Integer>> em : manualIntervals.entrySet()) {
-            for(Map.Entry<Integer, Interval<Integer>> ea : autoIntervals.entrySet()) {
-                if(ea.getValue().intersect(em.getValue())) {
-                    ret.putIfAbsent(em.getKey(), new ArrayList<>());
-                    ret.get(em.getKey()).add(ea.getKey());
-                }
-            }
-        }
-        return autoSessionsInEachManualSession=ret;
-    }
-
-    public static Map<Integer, Integer> getFalseStopsOfAutoActionsPerManualSession() {
-        return getAutoSessionsInEachManualSession().entrySet().stream().collect(Collectors.toMap( o->o.getKey() , o->(o.getValue().size()-1) ));
-    }
 
     //Map<manualSession, autoSession>
     private static Map<Integer, Integer> firstAutoSessionInEachManualSession = null;
@@ -50,11 +29,31 @@ public class Process {
     //Map<autoSession, firstTime>
     private static Map<Integer, Double> lastLocationTimeOfEachAutomaticSession = null;
 
+    //Map<autoSession, firstTime>
+    private static Map<Integer, Double> lastLocationTimeOfEachAutomaticSessionThatIsTheLastOneOfAManualOne = null;
+
     //Map<manualSession, firstAutoSessionStartTime>
     private static Map<Integer, Double> firstLocationTimeOfTheFirstAutoSessionInEachManualSession = null;
 
+    private static Integer getMax(List<Integer> l) {
+        return l.size() == 0 ? null : l.stream().max(Integer::compareTo).get();
+    }
+
     private static void init() {
-        getAutoSessionsInEachManualSession();
+        if(autoSessionsInEachManualSession == null) {
+            Map<Integer, Interval<Integer>> autoIntervals = DBConnection.automatic.getSession().getSessionIntervals();
+            Map<Integer, Interval<Integer>> manualIntervals = DBConnection.manual.getSession().getSessionIntervals();
+
+            autoSessionsInEachManualSession = new HashMap<>();
+            for(Map.Entry<Integer, Interval<Integer>> em : manualIntervals.entrySet()) {
+                for (Map.Entry<Integer, Interval<Integer>> ea : autoIntervals.entrySet()) {
+                    if (ea.getValue().intersect(em.getValue())) {
+                        autoSessionsInEachManualSession.putIfAbsent(em.getKey(), new ArrayList<>());
+                        autoSessionsInEachManualSession.get(em.getKey()).add(ea.getKey());
+                    }
+                }
+            }
+        }
 
         if(firstAutoSessionInEachManualSession == null)
             firstAutoSessionInEachManualSession = autoSessionsInEachManualSession.entrySet().stream()
@@ -65,16 +64,36 @@ public class Process {
                     );
 
         if(firstLocationTimeOfEachManualSession == null)
-            firstLocationTimeOfEachManualSession = DBconnection.manual.getGslocation().getFirstLocationTimeOfEachSession();
+            firstLocationTimeOfEachManualSession = DBConnection.manual.getGslocation().getFirstLocationTimeOfEachSession();
 
         if(firstLocationTimeOfEachAutomaticSession == null)
-            firstLocationTimeOfEachAutomaticSession =  DBconnection.automatic.getGslocation().getFirstLocationTimeOfEachSession();
+            firstLocationTimeOfEachAutomaticSession =  DBConnection.automatic.getGslocation().getFirstLocationTimeOfEachSession();
 
         if(lastLocationTimeOfEachManualSession == null)
-            lastLocationTimeOfEachManualSession = DBconnection.manual.getGslocation().getLastLocationTimeOfEachSession();
+            lastLocationTimeOfEachManualSession = DBConnection.manual.getGslocation().getLastLocationTimeOfEachSession();
 
         if(lastLocationTimeOfEachAutomaticSession == null)
-            lastLocationTimeOfEachAutomaticSession = DBconnection.automatic.getGslocation().getLastLocationTimeOfEachSession();
+            lastLocationTimeOfEachAutomaticSession = DBConnection.automatic.getGslocation().getLastLocationTimeOfEachSession();
+
+        if(lastLocationTimeOfEachAutomaticSessionThatIsTheLastOneOfAManualOne == null) {
+            Map<Integer,Integer> lastAutoSessionPerManualSession = autoSessionsInEachManualSession
+                    .entrySet().stream().collect(Collectors.toMap(
+                            o -> o.getKey(),
+                            o -> o.getValue().size() == 0 ? null : o.getValue().stream().max(Integer::compareTo).get()));
+            lastLocationTimeOfEachAutomaticSessionThatIsTheLastOneOfAManualOne = autoSessionsInEachManualSession.entrySet().stream()
+                    .filter(o -> o.getValue().stream().max(Integer::compareTo).isPresent())
+                    .collect(Collectors.toMap(
+                            o -> o.getValue().stream().max(Integer::compareTo).get(),
+                            o -> lastLocationTimeOfEachAutomaticSession.get(o.getValue().stream().max(Integer::compareTo).get())
+                    ));
+//            lastLocationTimeOfEachAutomaticSessionThatIsTheLastOneOfAManualOne = lastLocationTimeOfEachAutomaticSession.entrySet().stream()
+//                    .filter(o -> lastAutoSessionPerManualSession.containsKey(o.getKey()))
+//                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+//            System.out.println(autoSessionsInEachManualSession);
+//            System.out.println(lastLocationTimeOfEachAutomaticSession);
+//            System.out.println(lastLocationTimeOfEachAutomaticSessionThatIsTheLastOneOfAManualOne);
+        }
 
         if(firstLocationTimeOfTheFirstAutoSessionInEachManualSession == null)
             firstLocationTimeOfTheFirstAutoSessionInEachManualSession =
@@ -86,6 +105,20 @@ public class Process {
                     ));
     }
 
+    private static int getManualSessionFromAutomatic(int _auto) {
+        final Integer auto = new Integer(_auto);
+        for(Map.Entry<Integer, List<Integer>> e : autoSessionsInEachManualSession.entrySet()) {
+            if(e.getValue().contains(auto))
+                return e.getKey();
+        }
+        return -1;
+    }
+
+    public static Map<Integer, Integer> getFalseStopsOfAutoActionsPerManualSession() {
+        init();
+        return autoSessionsInEachManualSession.entrySet().stream().collect(Collectors.toMap( o->o.getKey() , o->(o.getValue().size()-1) ));
+    }
+
     public static Map<Integer, Double> getTotalLostDistancePerManualSession() {
         //-pegar nas intersações e descobrir a primeira sessão automática de cada.
         //-ir à primeira sessão automática de cada manual e descobrir o tempo de início dessa sessão
@@ -95,15 +128,15 @@ public class Process {
 
         return firstLocationTimeOfTheFirstAutoSessionInEachManualSession.entrySet().stream().collect(Collectors.toMap(
                 o -> o.getKey(),
-                o -> DBconnection.manual.getGslocation().getTotalDistanceFromTo(o.getKey(),-1,o.getValue())
+                o -> DBConnection.manual.getGslocation().getTotalDistanceFromTo(o.getKey(),-1,o.getValue())
         ));
     }
 
-    public static Map<Integer, Double> getTotalDiameterDistancePerManualSession() {
+    public static Map<Integer, Double> getTotalLostDiameterDistancePerManualSession() {
         init();
         return firstLocationTimeOfTheFirstAutoSessionInEachManualSession.entrySet().stream().collect(Collectors.toMap(
                 o -> o.getKey(),
-                o -> DBconnection.manual.getGslocation().getDiameterDistanceFromTo(o.getKey(),-1,o.getValue())
+                o -> DBConnection.manual.getGslocation().getDiameterDistanceFromTo(o.getKey(),-1,o.getValue())
         ));
     }
 
@@ -115,16 +148,22 @@ public class Process {
     }
 
     public static Map<Integer, Double> getDurationOfTestPerManualSession() {
-        return lastLocationTimeOfEachAutomaticSession.entrySet().stream().collect(Collectors.toMap(
-                o -> o.getKey(),
-                o -> o.getValue() - firstLocationTimeOfEachManualSession.getOrDefault(o.getKey(), Double.NaN)
+        //System.out.println("lastLocationTimeOfEachAutomaticSession = " + lastLocationTimeOfEachAutomaticSession);
+        //System.out.println("firstLocationTimeOfEachManualSession = " + firstLocationTimeOfEachManualSession);
+        return lastLocationTimeOfEachAutomaticSessionThatIsTheLastOneOfAManualOne.entrySet().stream()
+                .filter(e -> getManualSessionFromAutomatic(e.getKey()) > 0)
+                .collect(Collectors.toMap(
+                o -> getManualSessionFromAutomatic(o.getKey()),
+                o -> o.getValue() - firstLocationTimeOfEachManualSession.getOrDefault(getManualSessionFromAutomatic(o.getKey()), Double.NaN)
         ));
     }
 
     public static Map<Integer, Double> getStopTimePerManualSession() {
-        return lastLocationTimeOfEachAutomaticSession.entrySet().stream().collect(Collectors.toMap(
-                o -> o.getKey(),
-                o -> o.getValue() - lastLocationTimeOfEachManualSession.getOrDefault(o.getKey(), Double.NaN)
+        return lastLocationTimeOfEachAutomaticSessionThatIsTheLastOneOfAManualOne.entrySet().stream()
+                .filter(e -> getManualSessionFromAutomatic(e.getKey()) > 0)
+                .collect(Collectors.toMap(
+                o -> getManualSessionFromAutomatic(o.getKey()),
+                o -> o.getValue() - lastLocationTimeOfEachManualSession.getOrDefault(getManualSessionFromAutomatic(o.getKey()), Double.NaN)
         ));
     }
 }

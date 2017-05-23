@@ -17,21 +17,21 @@ abstract class Table {
         return temp;
     }
 
-    protected final DBconnection db;
+    protected final DBConnection db;
 
-    protected Table(DBconnection db, String... columns) {
+    protected Table(DBConnection db, String... columns) {
         this(db, null, getDummyClasses(columns.length), columns);
     }
 
-    protected Table(DBconnection db, List<Class<?>> types, String... columns) {
+    protected Table(DBConnection db, List<Class<?>> types, String... columns) {
         this(db, null, types, columns);
     }
 
-    /*protected Table(DBconnection db, String tableName, String... columns) {
+    /*protected Table(DBConnection db, String tableName, String... columns) {
         this(db, tableName, getDummyClasses(columns.length), columns);
     }*/
 
-    private Table(DBconnection db, String tableName, List<Class<?>> types, String... columns) {
+    private Table(DBConnection db, String tableName, List<Class<?>> types, String... columns) {
         tableResult = new TableResult( (tableName==null ? this.getClass().getSimpleName().toLowerCase() : tableName) , types);
         tableResult.setColumnNames(columns);
         this.db = db;
@@ -62,6 +62,8 @@ abstract class Table {
             System.exit(13);
         }
     }
+
+    //public Table(String )
 
     public final TableResult tableResult;
 }

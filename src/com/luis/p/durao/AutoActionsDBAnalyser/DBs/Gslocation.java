@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Gslocation extends Table {
-    Gslocation(DBconnection db) {
+    Gslocation(DBConnection db) {
         super(db,
                 Arrays.asList(new Class<?>[] {
                         INTEGER,

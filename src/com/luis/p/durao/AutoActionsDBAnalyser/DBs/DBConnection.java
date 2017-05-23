@@ -2,13 +2,13 @@ package com.luis.p.durao.AutoActionsDBAnalyser.DBs;
 
 import java.sql.*;
 
-public class DBconnection {
-    public static DBconnection manual=null, automatic=null;
+public class DBConnection {
+    public static DBConnection manual=null, automatic=null;
 
     public final Connection c;
     public final String fileName;
 
-    public DBconnection (String file) {
+    public DBConnection(String file) {
         Connection c = null;
         try {
             Class.forName("org.sqlite.JDBC");
@@ -23,7 +23,7 @@ public class DBconnection {
         //new Session();
     }
 
-    public DBconnection reload() {
+    public DBConnection reload() {
         session = null; //to force the session getter to reinitialize
 
         return this;    //to nest method calls

@@ -1,13 +1,8 @@
 package com.luis.p.durao.AutoActionsDBAnalyser.DBs;
 
 import com.luis.p.durao.AutoActionsDBAnalyser.Structs.Interval;
-import com.luis.p.durao.AutoActionsDBAnalyser.Structs.TableResult;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -15,7 +10,7 @@ import static com.luis.p.durao.AutoActionsDBAnalyser.Structs.TableResult.*;
 
 public class Session extends Table {
 
-    Session(DBconnection db) {
+    Session(DBConnection db) {
         super(db,
                 Arrays.asList(new Class<?>[] {
                         INTEGER,

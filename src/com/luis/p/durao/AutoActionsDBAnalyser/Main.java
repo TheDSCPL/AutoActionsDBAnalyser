@@ -1,23 +1,37 @@
 package com.luis.p.durao.AutoActionsDBAnalyser;
-import com.luis.p.durao.AutoActionsDBAnalyser.DBs.DBconnection;
-import com.luis.p.durao.AutoActionsDBAnalyser.DBs.Session;
+import com.luis.p.durao.AutoActionsDBAnalyser.DBs.DBConnection;
 
 import java.lang.*;
 
-import static com.luis.p.durao.AutoActionsDBAnalyser.DBs.DBconnection.*;
+import static com.luis.p.durao.AutoActionsDBAnalyser.DBs.DBConnection.*;
+
+//adb pull /sdcard/Android/data/future.cities.sensemyfeup/files/* ./
 
 public class Main {
-    //static DBconnection db;
+    //static DBConnection db;
 
     public static void main(String[] args) {
-        automatic = new DBconnection("auto.db");
-        manual = new DBconnection("auto.db");
-        //manual = new DBconnection("manual.db");
-        Session autoSession = automatic.getSession();
-        autoSession.tableResult.print();
-        //System.out.println(autoSession.getSessionIntervals());
+        automatic = new DBConnection("auto.db");
+        //manual = new DBConnection("auto.db");
+        manual = new DBConnection("manual.db");
+        //automatic.getSession().tableResult.print();
+        //System.out.println(automatic.getSession().getSessionIntervals());
 
-        System.out.println(automatic.getGslocation().getFirstLocationTimeOfEachSession());
+        System.out.println(manual.getSession().getStartEpochTimePerSession());
+
+        System.out.println("Paragens indevidas: " + Process.getFalseStopsOfAutoActionsPerManualSession());
+
+        System.out.println("Distância perdida: " + Process.getTotalLostDistancePerManualSession());
+
+        System.out.println("Distância perdida em diâmetro: " + Process.getTotalLostDiameterDistancePerManualSession());
+
+        System.out.println("Tempo perdido: " + Process.getLostTimePerManualSession());
+
+        System.out.println("Duração total do teste: " + Process.getDurationOfTestPerManualSession());
+
+        System.out.println("Tempo para parar: " + Process.getStopTimePerManualSession());
+
+        /*System.out.println(automatic.getGslocation().getFirstLocationTimeOfEachSession());
 
         System.out.println(Process.getTotalLostDistancePerManualSession());
 
@@ -29,7 +43,7 @@ public class Main {
 
         System.out.println(Process.getDurationOfTestPerManualSession());
 
-        System.out.println(Process.getStopTimePerManualSession());
+        System.out.println(Process.getStopTimePerManualSession());*/
 
         /*//
         long aft, b4 = System.nanoTime();
