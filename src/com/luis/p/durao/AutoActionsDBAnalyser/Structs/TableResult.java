@@ -60,6 +60,14 @@ public class TableResult {
                 System.err.println("At least one of the types passed to the tuple can't be converted to the respective column type.");
                 System.exit(12);
             }
+            for(int i = 0 ; i<values.size() ; i++) {
+                if(!(types.get(i).isInstance(values.get(i)))) {
+                    System.err.println("Column " + columnNames.get(i) + " in gslocation cannot be converted to type " + types.get(i).getSimpleName() + "(has type " + ((values.get(i)!=null)?values.get(i).getClass().getSimpleName():"null") + ")");
+                    System.exit(13);
+                } else {
+                    //System.out.println("Column " + columnNames.get(i) + " in gslocation can be converted to type " + types.get(i).getSimpleName() + "(has type " + ((values.get(i)!=null)?values.get(i).getClass().getSimpleName():"null") + ")");
+                }
+            }
             this.values = Collections.unmodifiableList(values);
         }
         private Tuple (Object... values) {
@@ -148,16 +156,21 @@ public class TableResult {
 
     public void importResultSet(ResultSet rs) {
         try {
+            outer_cycle:
             while ( rs.next() ) {
                 List<Object> temp = new ArrayList<>(numColumns());
-                columnNames.forEach(o -> {
+                boolean rejected = false;
+                for(String cn : columnNames) {
                     try {
-                        temp.add(rs.getObject(o));
+                        Object ob = rs.getObject(cn);
+                        if(ob==null)
+                            continue outer_cycle;
+                        temp.add(ob);
                     } catch (SQLException e) {
                         e.printStackTrace();
                         System.exit(10);
                     }
-                });
+                }
                 tuples.add(new Tuple(temp));
             }
         } catch (SQLException e) {

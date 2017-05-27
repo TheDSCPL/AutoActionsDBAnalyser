@@ -39,7 +39,7 @@ public class Process {
         return l.size() == 0 ? null : l.stream().max(Integer::compareTo).get();
     }
 
-    private static void init() {
+    public static void init() {
         if(autoSessionsInEachManualSession == null) {
             Map<Integer, Interval<Integer>> autoIntervals = DBConnection.automatic.getSession().getSessionIntervals();
             Map<Integer, Interval<Integer>> manualIntervals = DBConnection.manual.getSession().getSessionIntervals();
